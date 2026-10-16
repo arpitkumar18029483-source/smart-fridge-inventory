@@ -1,0 +1,439 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Fridge Inventory</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f1f8f2;color:#203c2b}
+header{background:#176b42;color:white;padding:22px 18px;border-radius:0 0 24px 24px}
+header h1{font-size:25px;margin-bottom:8px}
+.container{max-width:850px;margin:auto;padding:16px}
+.card{background:white;padding:18px;border-radius:17px;margin-bottom:16px;box-shadow:0 4px 15px #173d2810}
+h2{font-size:20px;margin-bottom:14px}
+h3{font-size:16px;margin-bottom:8px}
+.muted{color:#718078;font-size:14px;line-height:1.5}
+.center{text-align:center}
+.hidden{display:none!important}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.stat{background:#e3f4e6;border-radius:14px;padding:16px}
+.stat strong{display:block;font-size:26px;color:#176b42;margin-top:8px}
+button{border:0;border-radius:11px;padding:13px 15px;background:#208451;color:white;font-weight:bold;font-size:14px;cursor:pointer}
+button.secondary{background:#e4f4e7;color:#176b42}
+button.danger{background:#fce8e6;color:#a12c24}
+input,select,textarea{width:100%;padding:13px;margin:7px 0 15px;border:1px solid #d5e4d8;border-radius:10px;font-size:15px;background:white}
+label{font-weight:bold;font-size:14px}
+.form-wrap{max-width:440px;margin:30px auto;padding:22px}
+.nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.nav button{flex:1;min-width:90px}
+.item{padding:13px 0;border-bottom:1px solid #e8eee9;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.item:last-child{border-bottom:0}
+.item p{margin-top:5px}
+.pill{background:#fff0d8;color:#8c5c12;padding:6px 8px;border-radius:8px;font-size:12px}
+.green-pill{background:#e3f4e6;color:#176b42}
+.item-actions{display:flex;gap:6px;flex-wrap:wrap}
+.item-actions button{padding:9px}
+@media(max-width:420px){.container{padding:12px}.card{padding:15px}.grid{gap:9px}.stat{padding:12px}}
+</style>
+</head>
+<body>
+
+<section id="login" class="form-wrap card">
+<div class="center">
+<div style="font-size:44px;margin-bottom:10px">🥬</div>
+<h1 style="color:#176b42;margin-bottom:8px">Smart Fridge</h1>
+<p class="muted" style="margin-bottom:22px">Eat fresh. Save food. Share kindness.</p>
+</div>
+<form id="profileForm">
+<label for="name">Full Name</label>
+<input id="name" required maxlength="80" placeholder="Enter your name">
+<label for="age">Age</label>
+<input id="age" type="number" required min="1" max="120" placeholder="Enter your age">
+<label for="phone">Phone Number</label>
+<input id="phone" type="tel" required maxlength="20" placeholder="Enter your phone number">
+<label for="email">Email Address</label>
+<input id="email" type="email" required maxlength="254" placeholder="Enter your email">
+<button type="submit" style="width:100%">Continue →</button>
+</form>
+<p class="muted center" style="margin-top:14px">Demo login · No OTP or SMS</p>
+</section>
+
+<section id="app" class="hidden">
+<header>
+<h1>🥦 Smart Fridge Inventory</h1>
+<p id="greeting">Welcome!</p>
+</header>
+
+<div class="container">
+<nav class="nav">
+<button onclick="showPage('home')">🏠 Home</button>
+<button onclick="showPage('inventory')">🥗 Inventory</button>
+<button onclick="showPage('add')">➕ Add Food</button>
+<button onclick="showPage('donate')">❤️ Donate Food</button>
+<button onclick="showPage('profile')">👤 Profile</button>
+</nav>
+
+<section id="home" class="page">
+<div class="card">
+<h2>Your Fridge at a Glance</h2>
+<p class="muted">Manage food, prevent waste and help others.</p>
+<div class="grid" style="margin-top:16px">
+<div class="stat">Total Food<strong id="totalCount">0</strong></div>
+<div class="stat">Expiring Soon<strong id="expiryCount">0</strong></div>
+<div class="stat">Donation Requests<strong id="donationCount">0</strong></div>
+<div class="stat">Food Donated<strong id="donatedCount">0</strong></div>
+</div>
+</div>
+<div class="card">
+<h2>⚠️ Expiry Alerts</h2>
+<div id="alerts"><p class="muted">Add food to see expiry alerts.</p></div>
+</div>
+<div class="card">
+<h2>❤️ Share Food, Spread Happiness</h2>
+<p class="muted" style="margin-bottom:14px">Have safe food you won't use? Find an NGO and create a donation request.</p>
+<button onclick="showPage('donate')">Start Donating →</button>
+</div>
+<div class="card">
+<h2>💡 Smart Tips</h2>
+<p>🥬 Store food correctly to keep it fresh.</p>
+<p style="margin-top:9px">📅 Check expiry dates regularly.</p>
+<p style="margin-top:9px">❤️ Donate safe, suitable food before it expires.</p>
+</div>
+</section>
+
+<section id="inventory" class="page hidden">
+<div class="card">
+<h2>🥗 Your Food Inventory</h2>
+<div id="foodList"><p class="muted">Your inventory is empty.</p></div>
+</div>
+</section>
+
+<section id="add" class="page hidden">
+<div class="card">
+<h2>➕ Add Food Item</h2>
+<form id="foodForm">
+<label for="foodName">Food Name</label>
+<input id="foodName" required maxlength="80" placeholder="e.g. Apples">
+<label for="quantity">Quantity</label>
+<input id="quantity" required maxlength="50" placeholder="e.g. 2 kg">
+<label for="expiry">Expiry / Best-before Date</label>
+<input id="expiry" type="date" required>
+<button type="submit" style="width:100%">Add to Inventory</button>
+</form>
+</div>
+</section>
+
+<section id="donate" class="page hidden">
+<div class="card">
+<h2>❤️ Donate Food to an NGO</h2>
+<p class="muted" style="margin-bottom:15px">
+Choose food that is still safe to eat and contact an NGO to arrange a donation.
+</p>
+<form id="donationForm">
+<label for="donationFood">Choose Food Item</label>
+<select id="donationFood" required>
+<option value="">Select food from inventory</option>
+</select>
+
+<label for="donationQuantity">Quantity to Donate</label>
+<input id="donationQuantity" required maxlength="50" placeholder="e.g. 1 kg">
+
+<label for="ngoName">NGO Name</label>
+<input id="ngoName" required maxlength="100" placeholder="Enter NGO name">
+
+<label for="ngoPhone">NGO Contact Number</label>
+<input id="ngoPhone" type="tel" required maxlength="20" placeholder="Enter NGO phone number">
+
+<label for="ngoAddress">Pickup / Delivery Address</label>
+<textarea id="ngoAddress" required maxlength="300" rows="2" placeholder="Enter agreed address"></textarea>
+
+<label for="donationNotes">Additional Notes (optional)</label>
+<textarea id="donationNotes" maxlength="300" rows="2" placeholder="Food condition, packaging, pickup time..."></textarea>
+
+<p class="muted" style="margin-bottom:15px">
+Please confirm directly with the NGO that it accepts this food and can collect or receive it.
+</p>
+<button type="submit" style="width:100%">Create Donation Request ❤️</button>
+</form>
+</div>
+
+<div class="card">
+<h2>📋 My Donation Requests</h2>
+<div id="donationList"><p class="muted">No donation requests yet.</p></div>
+</div>
+</section>
+
+<section id="profile" class="page hidden">
+<div class="card">
+<h2>👤 Your Profile</h2>
+<div id="profileDetails" class="muted"></div>
+<button class="secondary" style="margin-top:18px" onclick="logout()">Log Out</button>
+</div>
+</section>
+
+<p class="muted center" style="padding:15px">Smart Fridge · Eat fresh, waste less 🌱</p>
+</div>
+</section>
+
+<script>
+const $ = id => document.getElementById(id);
+let foods = [];
+let donations = [];
+let nextFoodId = 1;
+let nextDonationId = 1;
+let profile = null;
+
+function showPage(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
+  $(page).classList.remove("hidden");
+  renderFoods();
+  renderDonations();
+}
+
+function addTextRow(parent, label, value) {
+  const row = document.createElement("p");
+  row.style.margin = "10px 0";
+  const strong = document.createElement("strong");
+  strong.textContent = label + ": ";
+  row.append(strong, document.createTextNode(String(value)));
+  parent.appendChild(row);
+}
+
+$("profileForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  profile = {
+    name: $("name").value.trim(),
+    age: Number($("age").value),
+    phone: $("phone").value.trim(),
+    email: $("email").value.trim()
+  };
+
+  if (!profile.name || !profile.phone || !profile.email ||
+      profile.age < 1 || profile.age > 120) {
+    alert("Please enter valid details in all fields.");
+    return;
+  }
+
+  $("greeting").textContent = "Welcome, " + profile.name + "! 👋";
+  $("profileDetails").replaceChildren();
+  addTextRow($("profileDetails"), "Name", profile.name);
+  addTextRow($("profileDetails"), "Age", profile.age);
+  addTextRow($("profileDetails"), "Phone", profile.phone);
+  addTextRow($("profileDetails"), "Email", profile.email);
+
+  $("login").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  showPage("home");
+});
+
+$("foodForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  foods.push({
+    id: nextFoodId++,
+    name: $("foodName").value.trim(),
+    quantity: $("quantity").value.trim(),
+    expiry: $("expiry").value,
+    donated: false
+  });
+
+  this.reset();
+  showPage("inventory");
+});
+
+function daysUntil(dateString) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const date = new Date(dateString + "T00:00:00");
+  return Math.round((date - today) / 86400000);
+}
+
+function renderFoods() {
+  if (!$("foodList")) return;
+
+  $("totalCount").textContent = foods.filter(f => !f.donated).length;
+  $("donationCount").textContent = donations.length;
+  $("donatedCount").textContent = foods.filter(f => f.donated).length;
+
+  const expiring = foods.filter(f => !f.donated &&
+      daysUntil(f.expiry) >= 0 && daysUntil(f.expiry) <= 3);
+  $("expiryCount").textContent = expiring.length;
+
+  $("foodList").replaceChildren();
+  $("alerts").replaceChildren();
+
+  const available = foods.filter(f => !f.donated);
+
+  if (!available.length) {
+    $("foodList").innerHTML = '<p class="muted">No food available. Add a food item first.</p>';
+  }
+
+  available.forEach(food => {
+    const row = document.createElement("div");
+    row.className = "item";
+
+    const info = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = food.name;
+    const detail = document.createElement("p");
+    detail.className = "muted";
+    detail.textContent = food.quantity + " · Date: " + food.expiry;
+    info.append(title, detail);
+
+    const actions = document.createElement("div");
+    actions.className = "item-actions";
+
+    const donateBtn = document.createElement("button");
+    donateBtn.textContent = "❤️ Donate";
+    donateBtn.addEventListener("click", () => {
+      showPage("donate");
+      $("donationFood").value = String(food.id);
+    });
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "danger";
+    removeBtn.textContent = "✕";
+    removeBtn.setAttribute("aria-label", "Remove " + food.name);
+    removeBtn.addEventListener("click", () => {
+      foods = foods.filter(f => f.id !== food.id);
+      renderFoods();
+    });
+
+    actions.append(donateBtn, removeBtn);
+    row.append(info, actions);
+    $("foodList").appendChild(row);
+  });
+
+  expiring.forEach(food => {
+    const row = document.createElement("div");
+    row.className = "item";
+    const info = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = food.name;
+    const detail = document.createElement("p");
+    detail.className = "muted";
+    detail.textContent = "Date: " + food.expiry;
+    info.append(title, detail);
+
+    const badge = document.createElement("span");
+    badge.className = "pill";
+    badge.textContent = daysUntil(food.expiry) === 0 ? "Today" :
+      daysUntil(food.expiry) + " day(s) left";
+
+    row.append(info, badge);
+    $("alerts").appendChild(row);
+  });
+
+  if (!expiring.length) {
+    $("alerts").innerHTML = '<p class="muted">No food expiring within 3 days.</p>';
+  }
+
+  const select = $("donationFood");
+  const previous = select.value;
+  select.replaceChildren();
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Select food from inventory";
+  select.appendChild(placeholder);
+
+  available.forEach(food => {
+    const option = document.createElement("option");
+    option.value = String(food.id);
+    option.textContent = food.name + " — " + food.quantity;
+    select.appendChild(option);
+  });
+
+  if (available.some(f => String(f.id) === previous)) {
+    select.value = previous;
+  }
+}
+
+$("donationForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const foodId = Number($("donationFood").value);
+  const food = foods.find(f => f.id === foodId && !f.donated);
+
+  if (!food) {
+    alert("Please choose an available food item.");
+    return;
+  }
+
+  if (daysUntil(food.expiry) < 0) {
+    alert("This food's listed date has passed. Do not donate it unless its safety is independently confirmed; please choose food that is safe to eat.");
+    return;
+  }
+
+  donations.push({
+    id: nextDonationId++,
+    foodId: food.id,
+    foodName: food.name,
+    quantity: $("donationQuantity").value.trim(),
+    ngo: $("ngoName").value.trim(),
+    phone: $("ngoPhone").value.trim(),
+    address: $("ngoAddress").value.trim(),
+    notes: $("donationNotes").value.trim(),
+    status: "Request created — not sent"
+  });
+
+  this.reset();
+  renderDonations();
+  renderFoods();
+  alert("Donation request created in this demo. Contact the NGO directly to arrange the donation.");
+});
+
+function renderDonations() {
+  const list = $("donationList");
+  if (!list) return;
+  list.replaceChildren();
+
+  if (!donations.length) {
+    list.innerHTML = '<p class="muted">No donation requests yet.</p>';
+    return;
+  }
+
+  donations.slice().reverse().forEach(d => {
+    const card = document.createElement("div");
+    card.className = "item";
+    const info = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = "❤️ " + d.foodName + " — " + d.quantity;
+    info.appendChild(title);
+
+    [
+      ["NGO", d.ngo],
+      ["Contact", d.phone],
+      ["Address", d.address],
+      ["Status", d.status]
+    ].forEach(([label, value]) => {
+      const p = document.createElement("p");
+      p.className = "muted";
+      p.style.marginTop = "6px";
+      p.textContent = label + ": " + value;
+      info.appendChild(p);
+    });
+
+    if (d.notes) {
+      const note = document.createElement("p");
+      note.className = "muted";
+      note.textContent = "Notes: " + d.notes;
+      info.appendChild(note);
+    }
+
+    card.appendChild(info);
+    list.appendChild(card);
+  });
+}
+
+function logout() {
+  $("app").classList.add("hidden");
+  $("login").classList.remove("hidden");
+}
+
+showPage("home");
+</script>
+</body>
+</html>
